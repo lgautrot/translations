@@ -1,0 +1,239 @@
+.\"
+.\" scp.1
+.\"
+.\" Author: Tatu Ylonen <ylo@cs.hut.fi>
+.\"
+.\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
+.\"                    All rights reserved
+.\"
+.\" Created: Sun May  7 00:14:37 1995 ylo
+.\"
+.\" $OpenBSD: scp.1,v 1.56 2010/12/09 14:13:32 jmc Exp $
+.\"
+.Dd $Mdocdate: December 9 2010 $
+.Dt SCP 1
+.Os
+.Sh NOM
+.Nm scp
+.Nd secure copy (programme de copie de fichier distant)
+.Sh SYNOPSIS
+.Nm scp
+.Bk -words
+.Op Fl 12346BCpqrv
+.Op Fl c Ar cipher
+.Op Fl F Ar ssh_config
+.Op Fl i Ar identity_file
+.Op Fl l Ar limit
+.Op Fl o Ar ssh_option
+.Op Fl P Ar port
+.Op Fl S Ar program
+.Sm off
+.Oo
+.Op Ar user No @
+.Ar host1 No :
+.Oc Ns Ar file1
+.Sm on
+.Ar ...
+.Sm off
+.Oo
+.Op Ar user No @
+.Ar host2 No :
+.Oc Ar file2
+.Sm on
+.Ek
+.Sh DESCRIPTION
+.Nm
+copie des fichiers entre des hôtes sur un réseau.
+Il utilise
+.Xr ssh 1
+pour les transferts de données et utilise la même authentification et
+fournit la même sécurité que
+.Xr ssh 1 .
+À la différence de
+.Xr rcp 1 ,
+.Nm
+demande un mot ou une phrase de passe s'ils sont nécessaires pour
+l'authentification.
+.Pp
+Les noms de fichiers peuvent contenir une spécification d'hôte pour
+indiquer que le fichier doit être copié vers/depuis cet hôte.
+Les fichiers locaux peuvent être spécifiés explicitement avec un
+emplacement relatif ou absolu afin d'éviter que
+.Nm
+ne traite les fichiers dont le nom contient
+.Sq :\&
+comme des spécifications d'hôtes.
+Les copies entre deux hôtes distants sont aussi permises.
+.Pp
+Les options sont les suivantes :
+.Bl -tag -width Ds
+.It Fl 1
+Force
+.Nm
+à utiliser le protocole version 1.
+.It Fl 2
+Force
+.Nm
+à utiliser le protocole version 2.
+.It Fl 3
+Les copies entre deux hôtes distants sont transférées par l'hôte
+local. Sans cette option, les données sont copiées directement entre
+les deux hôtes distants.
+Notez que cette option désactive la jauge.
+.It Fl 4
+Force
+.Nm
+à n'utiliser que les adresses IPv4.
+.It Fl 6
+Force
+.Nm
+à n'utiliser que les adresses IPv6.
+.It Fl B
+Active le mode de traitement par lot (empêche de demander des mots ou
+des phrases de passe).
+.It Fl C
+Active la compression.
+Passe l'option
+.Fl C
+à
+.Xr ssh 1
+pour activer la compression.
+.It Fl c Ar cipher
+Choisit le chiffrement à utiliser pour le cryptage des transferts de
+données.
+Cette option est directement passée à
+.Xr ssh 1 .
+.It Fl F Ar ssh_config
+Spécifie un fichier de configuration par utilisateur pour
+.Nm ssh .
+Cette option est passée directement à
+.Xr ssh 1 .
+.It Fl i Ar identity_file
+Spécifie le fichier d'où l'identité (clef privée) est lue pour
+l'authentification par clef publique.
+Cette option est passée directement à
+.Xr ssh 1 .
+.It Fl l Ar limit
+Limite la bande passante utilisée, spécifiée en Kbit/s.
+.It Fl o Ar ssh_option
+Peut être utilisé pour passer des options à
+.Nm ssh
+dans le format utilisé dans
+.Xr ssh_config 5 .
+C'est utile pour spécifier des options pour lesquelles il n'y a pas
+d'équivalent sur la ligne de commandes pour
+.Nm scp .
+Pour plus de détails sur les options énumérées ci-après, ainsi que
+leurs valeurs possibles, reportez-vous à
+.Xr ssh_config 5 .
+.Pp
+.Bl -tag -width Ds -offset indent -compact
+.It AddressFamily
+.It BatchMode
+.It BindAddress
+.It ChallengeResponseAuthentication
+.It CheckHostIP
+.It Cipher
+.It Ciphers
+.It Compression
+.It CompressionLevel
+.It ConnectionAttempts
+.It ConnectTimeout
+.It ControlMaster
+.It ControlPath
+.It GlobalKnownHostsFile
+.It GSSAPIAuthentication
+.It GSSAPIDelegateCredentials
+.It HashKnownHosts
+.It Host
+.It HostbasedAuthentication
+.It HostKeyAlgorithms
+.It HostKeyAlias
+.It HostName
+.It IdentityFile
+.It IdentitiesOnly
+.It IPQoS
+.It KbdInteractiveDevices
+.It KexAlgorithms
+.It LogLevel
+.It MACs
+.It NoHostAuthenticationForLocalhost
+.It NumberOfPasswordPrompts
+.It PasswordAuthentication
+.It PKCS11Provider
+.It Port
+.It PreferredAuthentications
+.It Protocol
+.It ProxyCommand
+.It PubkeyAuthentication
+.It RekeyLimit
+.It RhostsRSAAuthentication
+.It RSAAuthentication
+.It SendEnv
+.It ServerAliveInterval
+.It ServerAliveCountMax
+.It StrictHostKeyChecking
+.It TCPKeepAlive
+.It UsePrivilegedPort
+.It User
+.It UserKnownHostsFile
+.It VerifyHostKeyDNS
+.El
+.It Fl P Ar port
+Spécifie le port sur lequel se connecter sur l'hôte distant.
+Notez que cette option est écrite avec un
+.Sq P
+majuscule parce que
+.Fl p
+est réservé pour conserver les horodatages et modes des fichiers dans
+.Xr rcp 1 .
+.It Fl p
+Conserve les dates de modifications, d'accès et les modes du fichier
+original.
+.It Fl q
+Mode silencieux : désactive la jauge ainsi que les avertissements et
+les messages de diagnostic de
+.Xr ssh 1 .
+.It Fl r
+Copie récursivement des répertoires entiers.
+Notez que
+.Nm
+suit les liens symboliues rencontrés dans le parcours de
+l'arborescence.
+.It Fl S Ar program
+Nom du
+.Ar program
+à utiliser pour les connexions cryptées.
+Le programme doit comprendre les options de
+.Xr ssh 1 .
+.It Fl v
+Mode bavard.
+Verbose mode.
+.Nm
+et
+.Xr ssh 1
+afficheront les messages de débogage sur leur avancement.
+C'est utile pour le débogage de la connexion, de l'authentification et
+les problèmes de configuration.
+.El
+.Sh CODES DE SORTIE
+.Ex -std scp
+.Sh VOIR AUSSI
+.Xr rcp 1 ,
+.Xr sftp 1 ,
+.Xr ssh 1 ,
+.Xr ssh-add 1 ,
+.Xr ssh-agent 1 ,
+.Xr ssh-keygen 1 ,
+.Xr ssh_config 5 ,
+.Xr sshd 8
+.Sh HISTORIQUE
+.Nm
+est basé sur le programme
+.Xr rcp 1
+du code source de BSD de Regents of the University of California.
+.Sh AUTEURS
+.An Timo Rinne Aq tri@iki.fi
+.An Tatu Ylonen Aq ylo@cs.hut.fi
+.\"
+.\" Traduction Laurent GAUTROT <l.gautrot@free.fr> - 2011-08-04
