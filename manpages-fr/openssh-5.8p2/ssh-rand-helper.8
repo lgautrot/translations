@@ -1,0 +1,98 @@
+.\" $Id: ssh-rand-helper.8,v 1.3 2007/01/22 01:44:53 djm Exp $
+.\"
+.\" Copyright (c) 2002 Damien Miller.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+.\" IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+.\" INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+.\" NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+.\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.Dd April 14, 2002
+.Dt SSH-RAND-HELPER 8
+.Os
+.Sh NOM
+.Nm ssh-rand-helper
+.Nd collecteur de nombres aléatoires pour OpenSSH
+.Sh SYNOPSIS
+.Nm ssh-rand-hlper
+.Op Fl vxXh
+.Op Fl b Ar bytes
+.Sh DESCRIPTION
+.Nm
+est un preit programme auxilliaire utilisé par
+.Xr ssh 1 ,
+.Xr ssh-add 1 ,
+.Xr ssh-agent 1 ,
+.Xr ssh-keygen 1 ,
+.Xr ssh-keyscan 1
+et
+.Xr sshd 8
+pour collecter des nombres aléatoires de qualité cryptographique
+si la bibliothèque
+.Xr openssl 4
+n'a pas été configurée pour les fournir elle-même.
+.Pp
+Normalement
+.Nm
+génère une graîne aléatoire forte et la passe au programme appelant sur la
+sortie standard. Si la sortie standard est un tty,
+.Nm
+affiche la graîne en héxadécimal sauf instruction contraire.
+.Pp
+.Nm
+collecte par défaut les nombres aléatoires depuis les commandes systèmes
+ énumérées dans
+.Pa /etc/ssh/ssh_prng_cmds .
+La sortie de chacune de ces commandes est hachée et utilisée pour générée
+une graîne aléatoire pour le programme appelant.
+.Nm
+stocke les fichiers de graîne dans
+.Pa ~/.ssh/prng_seed
+entre chaque exécution.
+.Pp
+Par ailleurs,
+.Nm
+peut être configuré à la compilation pour collecter des nombres aléatoires
+depuis un serveur EGD/PRNGd par le biais d'une soket de domaine UNIX ou d'une
+socket TCP sur localhost.
+.Pp
+Ce programme n'est pas conçu pour être exécuté par un utilisateur, et les
+options de ligne de commandes ne servent qu'au débogage.
+.Bl -tag -width Ds
+.It Fl b Ar bytes
+Spécifie le nombre d'octets alétoires à inclure dans la sortie.
+.It Fl x
+Sort une graîne en héxadécimal plutôt que binaire.
+.It Fl X
+Force la sortie d'une graîne binaire même si la sortie standard est un tty
+.It Fl v
+Active les messages de débogage. Plusieurs options
+.Fl v
+augmentent le niveau de débogage.
+.It Fl h
+Affiche le résumé des options.
+.El
+.Sh AUTEURS
+Damien Miller <djm@mindrot.org>
+.Sh VOIR AUSSI
+.Xr ssh 1 ,
+.Xr ssh-add 1 ,
+.Xr ssh-keygen 1 ,
+.Xr sshd 8
+.\"
+.\" Traduction Laurent GAUTROT <l.gautrot@free.fr> - 2011-08-04
