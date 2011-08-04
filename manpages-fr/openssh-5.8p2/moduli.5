@@ -1,0 +1,126 @@
+.\"	$OpenBSD: moduli.5,v 1.12 2008/06/26 05:57:54 djm Exp $
+.\"
+.\" Copyright (c) 2008 Damien Miller <djm@mindrot.org>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.Dd $Mdocdate: June 26 2008 $
+.Dt MODULI 5
+.Os
+.Sh NOM
+.Nm moduli
+.Nd moduli Diffie Hellman
+.Sh DESCRIPTION
+Le fichier
+.Pa /etc/moduli
+contient les nombres premiers et les générateurs utilisables par
+.Xr sshd 8
+dans la méthode d'échange de clefs Diffie-Hellman Group Exchange.
+.Pp
+Un nouveau moduli peut être généré à l'aide de 
+.Xr ssh-keygen 1
+lors d'un procédure en deux étapes.
+Une passe
+.Em candidate generation
+, avec
+.Ic ssh-keygen -G ,
+calcule les nombres qui seront utiles.
+Une seconde passe
+.Em primality testing
+, avec
+.Ic ssh-keygen -T
+donne une bonne assurance que les nombres sont premiers et sont utilisables
+sans risque dans les opérations Diffie Hellman de
+.Xr sshd 8 .
+Ce
+.Nm
+est utilisé en sortie de chaque passe.
+.Pp
+Le fichier est composé d'enregistrements séparés par des sauts de ligne,
+un par modulus, et contenant sept champs séparés par un espace.
+Ces champs sont les suivants :
+.Pp
+.Bl -tag -width Description -offset indent
+.It timestamp
+Moment où le modulus a été traité la dernière fois, au format YYYYMMDDHHMMSS.
+.It type
+Nombre décimal spécifiant la structure interne du modulus premier.
+Les types supportés sont :
+.Pp
+.Bl -tag -width 0x00 -compact
+.It 0
+Inconnu, non testé.
+.It 2
+Premier « sûr » ; (p-1)/2 est aussi premier.
+.It 4
+Sophie Germain ; (p+1)*2 est aussi premier.
+.El
+.Pp
+Les candidats pour les moduli produits au départ par
+.Xr ssh-keygen 1
+sont des nombres premiers Sophie Germain (type 4).
+Les vérifications approfondies de primalité avec
+.Xr ssh-keygen 1
+produisent des moduli premiers sûrs (type 2) utilisables dans
+.Xr sshd 8 .
+Les autres types ne sont pas utilisés par OpenSSH.
+.It tests
+Nombre décimal indiquant le type de tests de primalité réalisés représenté
+sous la borme d'un masque binaire des valeurs suivantes :
+.Pp
+.Bl -tag -width 0x00 -compact
+.It 0x00
+Non testé
+.It 0x01
+Nombre composite - pas premier.
+.It 0x02
+Crible d'Ératosthène.
+.It 0x04
+Tests de primalité probabilistes de Miller-Rabin.
+.El
+.Pp
+La génération du moduli candidat par
+.Xr ssh-keygen 1
+utilise le crible d'Ératosthène (flag 0x02).
+Les tests suivants de primalité de
+.Xr ssh-keygen 1
+sont des tests Miller-Rabin (flag 0x04).
+.It trials
+Nombre décimal indicant le nombre de tentatives de primalité qui ont été
+réalisés sur le modulus.
+.It size
+Nombre décimal indiquant la taille du modulus en bits.
+.It generator
+Le générateur recommandé pour utiliser ce modulus (héxadécimal).
+.It modulus
+Le modulus lui-même en héxadécimal.
+.El
+.Pp
+Lors de l'échange Diffie Hellman Group Exchange,
+.Xr sshd 8
+estime d'abord la taille du modulus nécessaire pour produire assez de
+sortie de Diffie Hellman chiffrer la clef symmétrique sélectionnée.
+.Xr sshd 8
+choisit ensuite aléatoirement un modulus du fichier
+.Fa /etc/moduli
+qui correspond le mieux à l'exigence de taille.
+.Pp
+.Sh VOIR AUSSI
+.Xr ssh-keygen 1 ,
+.Xr sshd 8 ,
+.Rs
+.%R RFC 4419
+.%T "Diffie-Hellman Group Exchange for the Secure Shell (SSH) Transport Layer Protocol"
+.%D 2006
+.Re
+.\"
+.\" Traduction Laurent GAUTROT <l.gautrot@free.fr> - 2011-08-04
