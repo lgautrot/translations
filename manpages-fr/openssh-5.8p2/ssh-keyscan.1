@@ -1,0 +1,176 @@
+.\"	$OpenBSD: ssh-keyscan.1,v 1.29 2010/08/31 11:54:45 djm Exp $
+.\"
+.\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
+.\"
+.\" Modification and redistribution in source and binary forms is
+.\" permitted provided that due credit is given to the author and the
+.\" OpenBSD project by leaving this copyright notice intact.
+.\"
+.Dd $Mdocdate: August 31 2010 $
+.Dt SSH-KEYSCAN 1
+.Os
+.Sh NOM
+.Nm ssh-keyscan
+.Nd collecter des clefs publiques ssh
+.Sh SYNOPSIS
+.Nm ssh-keyscan
+.Bk -words
+.Op Fl 46Hv
+.Op Fl f Ar file
+.Op Fl p Ar port
+.Op Fl T Ar timeout
+.Op Fl t Ar type
+.Op Ar host | addrlist namelist
+.Ar ...
+.Ek
+.Sh DESCRIPTION
+.Nm
+est un utilitaire pour collecter les clefs d'hôtes ssh publiques de
+plusieurs hôtes.
+Il a été conçu pour assister dans la constitution et la vérification
+des fichiers
+.Pa ssh_known_hosts .
+.Nm
+fournit une interface minimale commode pour l'utilisation dans des
+scripts shell ou Perl.
+.Pp
+.Nm
+utilise des entrées/sorties de socket non-bloquantes pour contacter
+autant d'hôtes que possible en parallèle, donc il est très efficace.
+Les clefs d'un domaine d'un millier d'hôtes peuvent être collectées en
+quelques dizaines de secondes, même si certains de ces hôtes ne sont
+pas accessibles ou n'exécutent pas ssh.
+Pour l'analyse, il n'est pas nécessaire de disposer d'un compte sur
+les machines, et le processus n'implique aucun cryptage.
+.Pp
+Les options sont les suivantes :
+.Bl -tag -width Ds
+.It Fl 4
+Force
+.Nm
+à n'utiliser que les adresses IPv4.
+.It Fl 6
+Force
+.Nm
+à n'utiliser que les adresses IPv6.
+.It Fl f Ar file
+Lit les hôtes ou les couples
+.Pa addrlist namelist
+depuis ce fichier, un par ligne.
+Si
+.Pa -
+est fourni à la place d'un nom de fichier,
+.Nm
+lira les hôtes ou les couples
+.Pa addrlist namelist
+depuis l'entrée standard.
+.It Fl H
+Hache tous les noms d'hôtes et les adresses dans la sortie.
+Les noms hachés peuvent être utilisés normalement par
+.Nm ssh
+et
+.Nm sshd ,
+mais ne révèlent pas d'informations d'identification dans l'hypothèse
+ou le contenu du fichier serait dévoilé.
+.It Fl p Ar port
+Port où se connecter sur l'hôte distant.
+.It Fl T Ar timeout
+Règle la temporisation pour les tentatives de connexion.
+Si
+.Pa timeout
+secondes se sont écoulées depuis qu'une connexion a été initiée vers
+un hôte ou depuis la dernière fois que quelque chose a été lu depuis
+cet hôte, alors la connexion est fermée et l'hôte en question est
+considéré indisponible.
+La valeur par défaut est 5 secondes.
+.It Fl t Ar type
+Spécifie le type de clef à récupérer des hôtes analysés.
+Les valeurs possibles sont
+.Dq rsa1
+pour la version 1 du protocole et
+.Dq dsa ,
+.Dq ecdsa
+ou
+.Dq rsa
+pour la version 2 du protocole.
+Plusieurs valeurs peuvent être spécifiées en les séparant par des
+virgules.
+La valeur par défaut est
+.Dq rsa .
+.It Fl v
+Mode bavard.
+.Nm
+affichera des messages de débogage sur son avancement.
+.El
+.Sh SECURITÉ
+Si un fichier ssh_known_hosts est construit avec
+.Nm
+sans vérifier les clefs, les utilisateurs seront vulnérables aux
+attaques
+.Em man in the middle .
+D'un autre côté, si le modèle de sécurité tolère un tel risque,
+.Nm
+peut aider à la détection des fichiers de clefs falsifiés ou
+d'attaques man in the middle qui auraient eues lieu après la création
+du fichier ssh_known_hosts.
+.Sh FICHIERS
+.Pa Format d'entree :
+.Bd -literal
+1.2.3.4,1.2.4.4 name.my.domain,name,n.my.domain,n,1.2.3.4,1.2.4.4
+.Ed
+.Pp
+.Pa Format de sortie pour les clefs RSA1 :
+.Bd -literal
+host-or-namelist bits exponent modulus
+.Ed
+.Pp
+.Pa Format de sortie pour les clefs RSA, DSA et ECDSA :
+.Bd -literal
+host-or-namelist keytype base64-encoded-key
+.Ed
+.Pp
+Où
+.Pa keytype
+est soit
+.Dq ecdsa-sha2-nistp256 ,
+.Dq ecdsa-sha2-nistp384 ,
+.Dq ecdsa-sha2-nistp521 ,
+.Dq ssh-dss
+ou
+.Dq ssh-rsa .
+.Pp
+.Pa /etc/ssh/ssh_known_hosts
+.Sh EXEMPLES
+Afficher la clef d'hôte
+.Pa rsa
+pour la machine
+.Pa hostname  :
+.Bd -literal
+$ ssh-keyscan hostname
+.Ed
+.Pp
+Trouver tous les hôtes depuis le fichier
+.Pa ssh_hosts
+qui ont des clefs nouvelles ou différentes de celles du fichier
+.Pa ssh_known_hosts :
+.Bd -literal
+$ ssh-keyscan -t rsa,dsa,ecdsa -f ssh_hosts | \e
+	sort -u - ssh_known_hosts | diff ssh_known_hosts -
+.Ed
+.Sh VOIR AUSSI
+.Xr ssh 1 ,
+.Xr sshd 8
+.Sh AUTEURS
+.An -nosplit
+.An David Mazieres Aq dm@lcs.mit.edu
+a écrit la version initiale et
+.An Wayne Davison Aq wayned@users.sourceforge.net
+a ajouté le support de la version du protocole version 2.
+.Sh BUGS
+La commande génère des messages "Connection closed by remote host" sur
+les consoles de toutes les machines analysées si le serveur a une
+version antérieure à la version 2.9. C'est parce qu'il ouvre une
+connexion au port ssh, lit la clef publique et lâche la connexion dès
+qu'il obtient la clef.
+.\"
+.\" Traduction Laurent GAUTROT <l.gautrot@free.fr> - 2011-08-04
