@@ -1,0 +1,197 @@
+.\"	$OpenBSD: ssh-add.1,v 1.55 2010/10/28 18:33:28 jmc Exp $
+.\"
+.\" Author: Tatu Ylonen <ylo@cs.hut.fi>
+.\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
+.\"                    All rights reserved
+.\"
+.\" As far as I am concerned, the code I have written for this software
+.\" can be used freely for any purpose.  Any derived versions of this
+.\" software must be clearly marked as such, and if the derived work is
+.\" incompatible with the protocol description in the RFC file, it must be
+.\" called by a name other than "ssh" or "Secure Shell".
+.\"
+.\"
+.\" Copyright (c) 1999,2000 Markus Friedl.  All rights reserved.
+.\" Copyright (c) 1999 Aaron Campbell.  All rights reserved.
+.\" Copyright (c) 1999 Theo de Raadt.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+.\" IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+.\" INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+.\" NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+.\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.Dd $Mdocdate: October 28 2010 $
+.Dt SSH-ADD 1
+.Os
+.Sh NOM
+.Nm ssh-add
+.Nd ajoute des identités de clefs privées dans l'agent d'authentification
+.Sh SYNOPSIS
+.Nm ssh-add
+.Op Fl cDdLlXx
+.Op Fl t Ar life
+.Op Ar
+.Nm ssh-add
+.Fl s Ar pkcs11
+.Nm ssh-add
+.Fl e Ar pkcs11
+.Sh DESCRIPTION
+.Nm
+ajoute des identités de clefs privées dans l'agent d'authentification,
+.Xr ssh-agent 1 .
+Lorsqu'il est exécuté sans argument, il ajoute les fichiers
+.Pa ~/.ssh/id_rsa ,
+.Pa ~/.ssh/id_dsa ,
+.Pa ~/.ssh/id_ecdsa
+et
+.Pa ~/.ssh/identity .
+Après le chargement d'une clef privée,
+.Nm
+tente de charger l'information du certificat depuis le nom du fichier
+obtenu en suffixant 
+.Pa -cert.pub
+au nom du fichier de clef privée.
+Il est possible de spécifier des noms de fichiers différents sur
+la ligne de commandes.
+.Pp
+Si l'un des fichiers nécessite une phrase de passe,
+.Nm
+demande cette phrase à l'utilisateur.
+La phrase de passe est lue depuis le tty de l'utilisateur.
+.Nm
+tente de rejouer la dernière phrase de passe si plusieurs identités
+sont fournies.
+.Pp
+L'agent d'authentification doit être en cours d'exécution et la
+variable d'environnement
+.Ev SSH_AUTH_SOCK
+doit contenir le nom de sa socket pour que
+.Nm
+fonctionne.
+.Pp
+Les options sont les suivantes :
+.Bl -tag -width Ds
+.It Fl c
+Indique que les identités devront être confirmées avant d'être utilisées
+pour l'authentification.
+La confirmation est réalisée par le programme
+.Ev SSH_ASKPASS
+mentionné plus bas.
+Une confirmation fructueuse est signalée par un code de retour de zéro de
+.Ev SSH_ASKPASS ,
+plutôt que par un texte saisi dans l'interface.
+.It Fl D
+Supprime toutes les identités de l'agent.
+.It Fl d
+Au lieu d'ajouter des identités, supprime les identités de l'agent.
+Si
+.Nm
+est exécuté sans argument, les clefs des identités par défaut sont supprimées.
+Sinon, la liste d'arguments est interprétée comme une liste d'emplacements
+vers des fichiers de clefs publiques et les clefs correspondantes sont
+supprimées de l'agent.
+Si aucune clef publique n'est trouvée à un emplacement spécifié,
+.Nm
+ajoute
+.Pa .pub
+et tente à nouveau.
+.It Fl e Ar pkcs11
+Supprime les clefs fournies par la bibliothèque partagée PKCS#11
+.Ar pkcs11 .
+.It Fl L
+Liste les paramètres de clefs publiques de toutes les identités
+présentes dans l'agent.
+.It Fl l
+Liste les empreintes de toutes les identités présentes dans l'agent.
+.It Fl s Ar pkcs11
+Ajoute les clefs fournies par la bibliothèque partagée PKCS#11
+.Ar pkcs11 .
+.It Fl t Ar life
+Règle une durée de vie maximale lors de l'ajout des identités dans l'agent.
+La durée de vie peut être spécifiée en secondes ou dans un format spécifié dans
+.Xr sshd_config 5 .
+.It Fl X
+Déverrouille l'agent.
+.It Fl x
+Verrouille l'agent avec un mot de passe.
+.El
+.Sh ENVIRONNEMENT
+.Bl -tag -width Ds
+.It Ev "DISPLAY" et "SSH_ASKPASS"
+Si
+.Nm
+a besoin d'une phrase de passe, il la lit du terminal actif s'il a
+été lancé dans un terminal.
+Si
+.Nm
+n'a aucun terminal associé mais que
+.Ev DISPLAY
+et
+.Ev SSH_ASKPASS
+sont définis, il exécute le programme spécifié par
+.Ev SSH_ASKPASS
+et ouvre une fenêtre X11 pour lire la phrase de passe.
+C'est particulièrement utile lors de l'appel de
+.Nm
+depuis un
+.Pa .xsession
+ou d'un script similaire.
+(Notez que sur certaines machines, il peut être nécessaire de rediriger
+l'entrée depuis
+.Pa /dev/null
+pour que cela fonctionne.)
+.It Ev SSH_AUTH_SOCK
+Identifie l'emplacement d'un socket
+.Ux Ns -domain
+pour communiquer avec l'agent.
+.El
+.Sh FICHIERS
+.Bl -tag -width Ds
+.It Pa ~/.ssh/identity
+Contient l'identité RSA d'authentification de l'utilisateur pour la version 1 du protocole.
+.It Pa ~/.ssh/id_dsa
+Contient l'identité DSA d'authentification de l'utilisateur pour la version 2 du protocole.
+.It Pa ~/.ssh/id_ecdsa
+Contient l'identité ECDSA d'authentification de l'utilisateur pour la version 2 du protocole.
+.It Pa ~/.ssh/id_rsa
+Contient l'identité RSA d'authentification de l'utilisateur pour la version 2 du protocole.
+.El
+.Pp
+Les fichiers d'identité ne doivent être lisible que par l'utilisateur.
+Notez que
+.Nm
+ignore les fichiers d'identité s'ils sont accessibles aux autres.
+.Sh CODES DE SORTIE
+Le code de sortie est 0 en cas de réussite, 1 si la commande spécifiée échoue,
+et 2 si
+.Nm
+ne peut pas communiquer avec l'agent d'authentification.
+.Sh VOIR AUSSI
+.Xr ssh 1 ,
+.Xr ssh-agent 1 ,
+.Xr ssh-keygen 1 ,
+.Xr sshd 8
+.Sh AUTEURS
+OpenSSH est dérivé de la version originale et libre de ssh 1.2.12 de Tatu Ylonen.
+Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos,
+Theo de Raadt et Dug Song
+ont supprimé plusieurs bugs, ajouté des nouvelles fonctionnalités
+et ont créé OpenSSH.
+Markus Friedl a contribué au support des protocoles versions 1.5 et 2.0 de SSH.
+.\"
+.\" Traduction Laurent GAUTROT <l.gautrot@free.fr> - 2011-08-05
