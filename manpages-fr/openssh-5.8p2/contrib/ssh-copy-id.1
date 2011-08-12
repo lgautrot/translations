@@ -1,0 +1,76 @@
+.\" Traduction Laurent GAUTROT <l.gautrot@free.fr> - 2011-08-12
+.ig \"  -*- nroff -*-
+Copyright (c) 1999 Philip Hands Computing <http://www.hands.com/>
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be included in
+translations approved by the Free Software Foundation instead of in
+the original English.
+..
+.TH SSH-COPY-ID 1 "14 November 1999" "OpenSSH"
+.SH NOM
+ssh-copy-id \- installez vos clef publiques dans l'authorized_keys d'une machine distante
+.SH SYNOPSIS
+.B ssh-copy-id [-i [identity_file]]
+.I "[user@]machine"
+.br
+.SH DESCRIPTION
+.BR ssh-copy-id
+est un script qui se sert de ssh pour se connecter sur une machine
+distante et ajoute le fichier d'identité spécifié au fichier
+.B ~/.ssh/authorized_keys
+de cette machine.
+.PP
+Si l'option
+.B -i
+est fournie, alors le fichier d'identité (par défaut
+.BR ~/.ssh/id_rsa.pub )
+est utilisé, qu'il y ait ou n'ait pas de clef dans votre
+.BR ssh-agent .
+Sinon, si ceci\ :
+.PP
+.B "      ssh-add -L"
+.PP
+affiche quelque chose, il l'utilise à la place du fichier d'identité.
+.PP
+Si l'option
+.B -i
+est utilisée, ou si
+.B ssh-add
+n'affiche rien, alors il utilise le contenu du fichier d'identité.
+Quand il trouve une ou plusieurs empreintes (quelle que soit leur origine)
+il utilise ssh pour les ajouter à
+.B ~/.ssh/authorized_keys
+sur la machine distante (en créant le fichier et le répertoire si nécessaire).
+
+.SH NOTES
+Ce programme ne modifie pas les permissions des fichiers ou répertoires pré-existants.
+Par conséquent, si le
+.B sshd
+distant a l'option
+.B StrictModes
+réglée dans la configuration, alors le répertoire personnel de l'utilisateur,
+le répertoire
+.B ~/.ssh
+et le fichier
+.B ~/.ssh/authorized_keys
+devront être traité manuellement pour désactiver l'écriture par le groupe, par exemple à l'aide de la commande
+
+.B "      chmod go-w ~ ~/.ssh ~/.ssh/authorized_keys"
+
+sur la machine distante.
+
+.SH "VOIR AUSSI"
+.BR ssh (1),
+.BR ssh-agent (1),
+.BR sshd (8)
