@@ -1,0 +1,700 @@
+.\" Traduction Laurent GAUTROT <l.gautrot@free.fr> - 2011-08-12
+.\"	$OpenBSD: ssh-keygen.1,v 1.101 2010/10/28 18:33:28 jmc Exp $
+.\"
+.\" Author: Tatu Ylonen <ylo@cs.hut.fi>
+.\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
+.\"                    All rights reserved
+.\"
+.\" As far as I am concerned, the code I have written for this software
+.\" can be used freely for any purpose.  Any derived versions of this
+.\" software must be clearly marked as such, and if the derived work is
+.\" incompatible with the protocol description in the RFC file, it must be
+.\" called by a name other than "ssh" or "Secure Shell".
+.\"
+.\"
+.\" Copyright (c) 1999,2000 Markus Friedl.  All rights reserved.
+.\" Copyright (c) 1999 Aaron Campbell.  All rights reserved.
+.\" Copyright (c) 1999 Theo de Raadt.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+.\" IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+.\" INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+.\" NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+.\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.Dd $Mdocdate: October 28 2010 $
+.Dt SSH-KEYGEN 1
+.Os
+.Sh NOM
+.Nm ssh-keygen
+.Nd génération, gestion et conversion de clef d'authentification
+.Sh SYNOPSIS
+.Bk -words
+.Nm ssh-keygen
+.Op Fl q
+.Op Fl b Ar bits
+.Fl t Ar type
+.Op Fl N Ar new_passphrase
+.Op Fl C Ar comment
+.Op Fl f Ar output_keyfile
+.Nm ssh-keygen
+.Fl p
+.Op Fl P Ar old_passphrase
+.Op Fl N Ar new_passphrase
+.Op Fl f Ar keyfile
+.Nm ssh-keygen
+.Fl i
+.Op Fl m Ar key_format
+.Op Fl f Ar input_keyfile
+.Nm ssh-keygen
+.Fl e
+.Op Fl m Ar key_format
+.Op Fl f Ar input_keyfile
+.Nm ssh-keygen
+.Fl y
+.Op Fl f Ar input_keyfile
+.Nm ssh-keygen
+.Fl c
+.Op Fl P Ar passphrase
+.Op Fl C Ar comment
+.Op Fl f Ar keyfile
+.Nm ssh-keygen
+.Fl l
+.Op Fl f Ar input_keyfile
+.Nm ssh-keygen
+.Fl B
+.Op Fl f Ar input_keyfile
+.Nm ssh-keygen
+.Fl D Ar pkcs11
+.Nm ssh-keygen
+.Fl F Ar hostname
+.Op Fl f Ar known_hosts_file
+.Op Fl l
+.Nm ssh-keygen
+.Fl H
+.Op Fl f Ar known_hosts_file
+.Nm ssh-keygen
+.Fl R Ar hostname
+.Op Fl f Ar known_hosts_file
+.Nm ssh-keygen
+.Fl r Ar hostname
+.Op Fl f Ar input_keyfile
+.Op Fl g
+.Nm ssh-keygen
+.Fl G Ar output_file
+.Op Fl v
+.Op Fl b Ar bits
+.Op Fl M Ar memory
+.Op Fl S Ar start_point
+.Nm ssh-keygen
+.Fl T Ar output_file
+.Fl f Ar input_file
+.Op Fl v
+.Op Fl a Ar num_trials
+.Op Fl W Ar generator
+.Nm ssh-keygen
+.Fl s Ar ca_key
+.Fl I Ar certificate_identity
+.Op Fl h
+.Op Fl n Ar principals
+.Op Fl O Ar option
+.Op Fl V Ar validity_interval
+.Op Fl z Ar serial_number
+.Ar
+.Nm ssh-keygen
+.Fl L
+.Op Fl f Ar input_keyfile
+.Ek
+.Sh DESCRIPTION
+.Nm
+génère, gère et convertit des clefs d'authentification pour
+.Xr ssh 1 .
+.Nm
+peut créer des clefs RSA pour la version 1 du protocole SSH et des clefs
+DSA, ECDSA ou RSA pour la version 2 du protocole SSH.
+Le type de clef à générer est spécifié à l'aide de l'option
+.Fl t .
+Sans aucun argument,
+.Nm
+génère une clef RSA utilisable pour des connexion dans la version 2
+du protocole SSH.
+.Pp
+.Nm
+peut aussi générer des groupes utilisables pour le Diffie-Hellman group
+exchange (DH-GEX).
+Voir la section
+.Sx GENERATION DES MODULI
+pour les détails.
+.Pp
+Normalement, chaque utilisateur qui souhaite utiliser SSH avec une
+authentification par clef publique exécute une fois cette commande pour
+créer la clef d'authentification dans
+.Pa ~/.ssh/identity ,
+.Pa ~/.ssh/id_ecdsa ,
+.Pa ~/.ssh/id_dsa
+ou
+.Pa ~/.ssh/id_rsa .
+En outre, l'administrateur système peut l'utiliser pour générer les clefs
+d'hôte comme vu dans
+.Pa /etc/rc .
+.Pp
+Normalement, ce programme génère la clef et demande l'emplacement d'un
+fichier pour stocker la clef privée.
+La clef publique est stockée dans un fichier du même nom avec
+.Dq .pub
+ajouté à la fin.
+Le programme demande aussi une phrase de passe.
+La phrase de passe peut être vide pour indiquer qu'il n'y en a pas (les
+clefs d'hôte doivent avoir une phrase de passe vide), ou peut être une
+chaîne de caractères de taille arbitraire.
+Une phrase de passe est similaire à un mot de passe, mais elle peut être
+une phrase complète avec une suite de mots, de caractères de ponctuation,
+de chiffres, d'espaces ou de n'importe quelle chaîne de caractères.
+Les bonnes phrases de passe mesurent de 10 à 30 cactères, ne sont pas des
+phrases simples ou qui peuvent être devinées facilement (la prose anglaise
+n'a que 1 à 2 bits d'entropie par caractère et donne de piètres phrases
+de passe), et contiennent un mélange de lettres majuscules et minuscules,
+de chiffres et de caractères non alphanumériques.
+La phrase de passe peut être changée ultérieurement à l'aide de l'option
+.Fl p .
+.Pp
+Il n'y a aucun moyen de recouvrer une phrase de passe perdue.
+Si la phrase de passe est perdue ou oubliée, il faut générer une nouvelle
+clef et copier la clef publique correspondante aux autres machines.
+.Pp
+Pour les clefs RSA1, il y a aussi un champ de commentaire dans le fichier
+de clef pour permettre à un utilisateur d'identifier la clef.
+Le commentaire peut rappeler l'usage de la clef ou toute autre information
+utile.
+Il est initialisé à
+.Dq user@host
+lorsque la clef est créée, mais peut être changé à l'aide de l'option
+.Fl c .
+.Pp
+À l'issue de la génération d'une clef, les instructions affichées
+précisent à quel emplacement les clefs doivent être déposées pour être
+activées.
+.Pp
+Les options sont les suivantes\ :
+.Bl -tag -width Ds
+.It Fl a Ar trials
+Spécifie le nombre de tests de primalité à réaliser lors de l'analyse
+des candidats pour le DH-GEX avec la commande
+.Fl T .
+.It Fl B
+Affiche le résumé bubblebabble du fichier de clef privée ou publique spécifié.
+.It Fl b Ar bits
+Spécifie le nombre de bits dans la clef à créer.
+Pour les clefs RSA, la taille minimale est de 768 bits et la taille
+par défaut est de 2048 bits.
+On considère généralement qu'une taille de 2048 bits est suffisante.
+Les clefs DSA doivent être d'exactement 1024 bits comme spécifié dans
+FIPS 186-2.
+.It Fl C Ar comment
+Fournit un nouveau commentaire.
+.It Fl c
+Demande le changement du commentaire dans les fichiers de clef privée
+ou publique.
+Cette opération n'est supportée que pour les clefs RSA1.
+Le programme demande le fichier contenant les clefs privées, la
+phrase de passe si la clef en possède une, et le nouveau commentaire.
+.It Fl D Ar pkcs11
+Obtient la clef publique ESA fournie par la bibliothèque partagée
+PKCS#11
+.Ar pkcs11 .
+Utilisée conjointement avec
+.Fl s ,
+Cette option indique que la clef de l'autorité de certification réside
+sur un token PKCS#11 (voir la section
+.Sx CERTIFICATS
+pour les détails).
+.It Fl e
+Cette option lit le fichier de clef privée ou publique OpenSSH et
+affiche sur stdout la clef dans un des formats spécifiés par l'option
+.Fl m .
+Le format d'export par défaut est
+.Dq RFC4716 .
+Cette option permet d'exporter les clefs OpenSSH pour les utiliser
+dans d'autres programmes, dont plusieurs implémentations commerciales
+de SSH.
+.It Fl F Ar hostname
+Recherche un nom d'hôte
+.Ar hostname
+dans un fichier
+.Pa known_hosts ,
+en listant toutes les occurrences trouvées.
+Cette option est utile pour trouver les noms d'hôtes hachés ou les
+adresses et peut être utilisée conjointement avec l'option
+.Fl H
+pour afficher les clefs trouvées dans un format haché.
+.It Fl f Ar filename
+Spécifie le nom du fichier de clef.
+.It Fl G Ar output_file
+Génère les nombres premiers candidats pour le DH-GEX.
+Les nombres premiers doivent être visualisés par sécurité (à l'aide de
+l'option
+.Fl T )
+avant utilisation.
+.It Fl g
+Utilise le format DNS générique lors de l'affichage des
+enregistrements des empreintes à l'aide de la commande
+.Fl r .
+.It Fl H
+Hache un fichier
+.Pa known_hosts .
+Ceci remplace tous les noms d'hôtes et les adresses par leur
+représentation hachée dans le fichier spécifié\ ; le contenu original
+est déplacé dans un fichier dont le nom porte un suffixe .old.
+Ces hachages peuvent être utilisés normalement par
+.Nm ssh
+et
+.Nm sshd ,
+mais ils ne révèlent pas d'information permettant d'identifier les
+hôtes dans l'hypothèse ou le contenu serait dévoilé.
+Cette option ne modifie pas les noms d'hôtes déjà hachés et est sans
+risque pour les fichiers contenant une part de noms hachés et de noms
+en clair.
+.It Fl h
+Lors d'une signature de clef, crée un certificat d'hôte plutôt qu'un
+certificat d'utilisateur.
+Voir la section
+.Sx CERTIFICATS
+pour plus d'information.
+.It Fl I Ar certificate_identity
+Spécifie l'identité de la clef lors de la signature d'une clef
+publique.
+Voir la section
+.Sx CERTIFICATS
+pour plus d'information.
+.It Fl i
+Cette option lit un fichier de clef privée (ou publique) en clair dans
+le format spécifié par l'option
+.Fl m
+et affiche une clef privée (ou publique) compatible avec OpenSSH sur
+stdout.
+Cette option permet d'importer des clefs d'autres logiciels, dont
+plusieurs implémentations commerciales de SSH.
+Le format d'import par défaut est
+.Dq RFC4716 .
+.It Fl L
+Affiche le contenu d'un certificat.
+.It Fl l
+Affiche l'empreinte d'un fichier de clef publique spécifié.
+Les clefs privées RSA1 sont également gérées.
+Pour les clefs RSA et DSA
+.Nm
+tente de trouver le fichier de clef publique correspondant et affiche
+son empreinte.
+Conjointement avec
+.Fl v ,
+une représentation en ASCII art de la clef est fournie avec
+l'empreinte.
+.It Fl M Ar memory
+Spécifie la quantité de mémoire à utiliser (en megaoctet) lors de la
+génération des moduli candidats pour le DH-GEX.
+.It Fl m Ar key_format
+Spécifie un format de clef pour les options de conversion
+.Fl i
+(import) ou
+.Fl e
+(export).
+Les formats de clefs supportés sont\ :
+.Dq RFC4716
+(RFC 4716/Clef publique ou privée SSH2),
+.Dq PKCS8
+(clef publique PEM PKCS8)
+ou
+.Dq PEM
+(clef publique PEM).
+Le format de conversion par défaut est
+.Dq RFC4716 .
+.It Fl N Ar new_passphrase
+Fournit la nouvelle phrase de passe.
+.It Fl n Ar principals
+Spécifie un ou plusieurs principals (utilisateur ou noms d'hôte) à
+inclure dans un certificat lors de la signature de la clef.
+On peut spécifier plusieurs principals en les séparant avec des
+virgules.
+Voir la section
+.Sx CERTIFICATS
+pour plus de détails.
+.It Fl O Ar option
+Spécifie une option de certificat lors de la signature de la clef.
+Cette option peut être spécifié plusieurs fois.
+Voir la section
+.Sx CERTIFICATS
+pour plus de détails.
+Les options valides pour les certificats d'utilisateurs sont\ :
+.Bl -tag -width Ds
+.It Ic clear
+Efface toutes les permissions activées.
+C'est utile pour effacer le jeu de permissions par défaut afin
+d'ajouter des permissions individuellement.
+.It Ic force-command Ns = Ns Ar command
+Force l'exécution de la commande
+.Ar command
+au lieu d'un shell ou d'une commande spécifiée par l'utilisateur
+lorsque le certificat est utilisé pour l'authentification.
+.It Ic no-agent-forwarding
+Désactive la redirection de l'agent
+.Xr ssh-agent 1
+(par défaut, c'est autorisé).
+.It Ic no-port-forwarding
+Désactive les redirections de port (par défaut, c'est autorisé).
+.It Ic no-pty
+Désactive l'allocation de PTY (par défaut, c'est autorisé).
+.It Ic no-user-rc
+Désactive l'exécution de
+.Pa ~/.ssh/rc
+par
+.Xr sshd 8
+(par défaut, c'est autorisé).
+.It Ic no-x11-forwarding
+Désactive la redirection X11 (par défaut, c'est autorisé).
+.It Ic permit-agent-forwarding
+Autorise la redirection de l'agent
+.Xr ssh-agent 1 .
+.It Ic permit-port-forwarding
+Autorise les redirections de port.
+.It Ic permit-pty
+Autorise l'allocation de PTY.
+.It Ic permit-user-rc
+Autorise l'exécution de
+.Pa ~/.ssh/rc
+par
+.Xr sshd 8 .
+.It Ic permit-x11-forwarding
+Autorise la redirection X11.
+.It Ic source-address Ns = Ns Ar address_list
+Restreint les adresses sources pour lesquelles le certificat est
+considéré valide.
+La liste
+.Ar address_list
+est une liste d'un ou plusieurs couples d'adresses/masques de
+sous-réseau en notation CIDR.
+.El
+.Pp
+Pour le moment, aucune option n'est valide pour les clefs d'hôtes.
+.It Fl P Ar passphrase
+Fournit l'ancienne phrase de passe.
+.It Fl p
+Demande le changement de la phrase de passe d'un fichier de clef
+privée plutôt que la création d'une nouvelle clef privée.
+Le programme demande le fichier contenant la clef privée, l'ancienne
+phrase de passe, et à deux reprises la nouvelle phrase de passe.
+.It Fl q
+Rend
+.Nm ssh-keygen
+silencieux.
+Utilisé par
+.Pa /etc/rc
+lors de la création d'une nouvelle clef.
+.It Fl R Ar hostname
+Supprime toutes les clefs appartenant à
+.Ar hostname
+d'un fichier
+.Pa known_hosts .
+Cette option est utile pour supprimer les hôtes hachés (voir l'option
+.Fl H
+plus haut).
+.It Fl r Ar hostname
+Affiche l'empreinte SSHFP
+Print the SSHFP fingerprint resource record named
+.Ar hostname
+pour le fichier de clef publique spécifié.
+.It Fl S Ar start
+Spécifie un point de départ (en hexadécimal) lors de la génération des
+moduli candidats pour DH-GEX.
+.It Fl s Ar ca_key
+Certifie (signe) une clef publique à l'aide de la clef de CA
+spécifiée.
+Voir la section
+.Sx CERTIFICATS
+pour plus de détails.
+.It Fl T Ar output_file
+Teste les nombres premiers candidats pour le DH group exchange (généré
+à l'aide de l'option
+.Fl G )
+par sécurité.
+.It Fl t Ar type
+Spécifie le type de clef à créer.
+Les valeurs possibles sont
+.Dq rsa1
+pour la version 1 du protocole et
+.Dq dsa ,
+.Dq ecdsa
+ou
+.Dq rsa
+pour la version 2 du protocole.
+.It Fl V Ar validity_interval
+Spécifie une période de validité lors de la signature d'un certificat.
+Une péridoe de validité peut consister en une date unique, indiquant
+que le certificat est valide à partir de maintenant et expire à cette
+date, ou peut consister en deux dates séparées par le caractère
+deux-points pour indiquer explicitement un intervalle de temps.
+La date de début peut être spécifiée comme une date au format
+YYYYMMDD, un horodatage au format YYYYMMDDHHMMSS ou une date relative
+(au moment présent) consistant en un signe moins suivi d'une date
+relative au format décrit dans la section
+.Sx FORMATS DE DATE
+de
+.Xr sshd_config 5 .
+La date de fin peut être spécifiée comme une date YYYYMMDD, un
+horodatage YYYYMMDDHHMMSS ou une date relative commençant par un
+caractère plus.
+.Pp
+Par exemple\ :
+.Dq +52w1d
+(valide de maintenant à dans 52 semaines plus un jour),
+.Dq -4w:+4w
+(valide d'il y a quatre semaines à dans quatre semaines),
+.Dq 20100101123000:20110101123000
+(valide du 1er janvier 2010 à 12h30 au 1er janvier 2011 à 12h30),
+.Dq -1d:20110101
+(valide d'hier au 1er janvier 2011 à minuit).
+.It Fl v
+Mode bavard.
+.Nm
+affiche des messages de debogage sur son avancement.
+C'est utile pour déboguer la génération des moduli.
+Plusieurs options
+.Fl v
+ajoutent des détails.
+Au maximum 3.
+.It Fl W Ar generator
+Spécifie le générateur souhaité pour tester les moduli candidats pour
+le DH-GEX.
+.It Fl y
+Cette option lit un fichier de clef privée au format d'OpenSSH et
+affiche sur stdout une clef publique d'OpenSSH.
+.It Fl z Ar serial_number
+Spécifie un numéro de série à intégrer dans le certificat pour
+distinguer ce certificat des autres de la même CA.
+Le numéro de série par défaut est zéro.
+.El
+.Sh GENERATION DES MODULI
+.Nm
+peut être utilisé pour générer des groupes pour le protocole Diffie-Hellman
+Group Exchange (DH-GEX).
+La génération de ces groupes est un processus en deux étapes\ :
+premièrement, les nombres premiers candidats sont générés à l'aide
+d'un processus rapide mais consommateur de mémoire. Ces nombres
+premiers candidats sont alors testés pour vérifier qu'ils sont
+corrects (un processus consommateur de temps machine).
+.Pp
+La génération des nombres premiers est réalisée à l'aide de l'option
+.Fl G .
+La longueur désirée pour les nombres premiers peut être spécifiée par
+l'option
+.Fl b .
+Par exemple\ :
+.Pp
+.Dl # ssh-keygen -G moduli-2048.candidates -b 2048
+.Pp
+Par défaut, la recherche des nombres premiers débute à un point
+quelconque de la plage de longueur spécifiée.
+Ceci peut être outrepassé à l'aide de l'option
+.Fl S ,
+qui spécifie un point de départ différent (en hexadécimal).
+.Pp
+Lorsqu'un jeu de candidats a été généré, ils doivent être testés pour
+vérifier qu'ils sont corrects.
+Ceci peut être réalisé à l'aide de l'option
+.Fl T .
+Dans ce mode
+.Nm
+list les candidats de l'entrée standard (ou d'un fichier spécifié à
+l'aide de l'option
+.Fl f ).
+Par exemple\ :
+.Pp
+.Dl # ssh-keygen -T moduli-2048 -f moduli-2048.candidates
+.Pp
+Par défaut, chaque candidat est soumis à 100 tests de primalité.
+Ceci peut être outrepassé avec l'option
+.Fl a .
+La valeur du générateur de DH est choisie automatiquement pour chaque
+nombre premier considéré.
+Si un générateur spécifique est souhaité, il peut être demandé à
+l'aide de l'option
+.Fl W .
+Les valeurs valides pour le générateur sont 2, 3 et 5.
+.Pp
+Les groupes DH scrutés peuvent être installés dans
+.Pa /etc/moduli .
+Il est important que ce fichier contienne des moduli d'un d'une plage
+de longueurs de bits et que les deux extrémités d'une connexion aient
+des moduli en commun.
+.Sh CERTIFICATS
+.Nm
+supporte la signature des clefs pour produire des certificats qui
+peuvent être utilisés pour l'authentification d'utilisateurs ou
+d'hôtes.
+Les certificats consistent en une clef publique, des informations
+d'identité, zéro ou plusieurs noms de principal (utilisateur ou hôte)
+et un ensemble d'options qui sont signés par la clef d'une autorité de
+certification (CA).
+Les clients ou les serveurs peuvent alors limiter leur confiance en
+une seule clef de CA et vérifier sa signature sur un certificat plutôt
+que de faire confiance à de nombreuses clefs d'utilisateurs/d'hôtes.
+Notez que les certificats d'OpenSSH ont un format différent et bien
+plus simple que celui des certificats X.509 utilisés dans
+.Xr ssl 8 .
+.Pp
+.Nm
+supporte deux types de certificats\ : utilisateur et hôte.
+Les certificats d'utilisateurs authentifient les utilisateurs sur les
+serveurs, alors que les certificats d'hôtes authentifient les hôtes
+aux utilisateurs.
+Pour générer un certificat d'utilisateur\ :
+.Pp
+.Dl $ ssh-keygen -s /path/to/ca_key -I key_id /path/to/user_key.pub
+.Pp
+Le certificat résultant est placé dans
+.Pa /path/to/user_key-cert.pub .
+Un certificat d'hôte nécessite l'option
+.Fl h \ :
+.Pp
+.Dl $ ssh-keygen -s /path/to/ca_key -I key_id -h /path/to/host_key.pub
+.Pp
+Le certificat d'hôte est généré dans
+.Pa /path/to/host_key-cert.pub .
+.Pp
+Il est possible de signer à l'aide d'une clef de CA stockée dans un
+token PKCS#11 en précisant la bibliothèque de token avec
+.Fl D
+et en identifiant la clef de CA qui fournit sa moitié publique en
+argument à
+.Fl s \ :
+.Pp
+.Dl $ ssh-keygen -s ca_key.pub -D libpkcs11.so -I key_id host_key.pub
+.Pp
+Dans tous les cas,
+.Ar key_id
+est un «\ identifiant de clef\ » qui est conservé par le serveur quand
+le certificat est utilisé pour l'authentification.
+.Pp
+La validité des certificats peut être limitée à un ensemble de noms de
+principal (utilisateur/hôte).
+Par défaut, les certificats générés sont valides pour tous les
+utilisateurs ou hôtes.
+Pour générer un certificat pour un ensemble de principals spéficié\ :
+.Pp
+.Dl $ ssh-keygen -s ca_key -I key_id -n user1,user2 user_key.pub
+.Dl "$ ssh-keygen -s ca_key -I key_id -h -n host.domain user_key.pub"
+.Pp
+Des limitations supplémentaires sur la validité et l'utilisation de
+certificats d'utilisateur peut être spécifié avec des options de
+certificats.
+Une option de certificat peut désactiver des fonctionnalités de la
+session SSH, peut n'être valide que lorsqu'elle est présentée
+d'adresses sources particulières ou peut forcer l'utilisation d'une
+commande spécifique.
+Pour une liste des options valides de certificats, voir la
+documentation de l'option
+.Fl O
+plus haut.
+.Pp
+Finalement, les certificats peuvent être définiss avec une durée de
+validité.
+L'option
+.Fl V
+permet de spécifier des dates de début et de fin des certificats.
+Un certificat présenté à une date en dehors de cette plafe ne sera pas
+réputé valide.
+Par défaut, les certificats ont un intervalle de validité maximal.
+.Pp
+Afin de pouvoir utiliser les certificats pour l'authentification des
+utilisateurs ou des hôtes, la clef publique de la CA doit être de
+confiance pour
+.Xr sshd 8
+ou
+.Xr ssh 1 .
+Reportez-vous à ces pages de manuel pour les détails.
+.Sh FICHIERS
+.Bl -tag -width Ds -compact
+.It Pa ~/.ssh/identity
+Contient l'identité RSA d'authentification de l'utilisateur pour la
+version 1 du protocole.
+Ce fichier ne doit être lisible que par l'utilisateur.
+Il est possible de spécifier une phrase de passe pour générer la
+clef\ ; cette phrase de passe est utilisée pour crypter la partie
+privée du fichier avec 3DES.
+.Nm
+n'accède pas directement à ce fichier mais c'est le fichier par défaut
+pour la clef privée.
+.Xr ssh 1
+lit ce fichier quand une tentative d'identification est réalisée.
+.Pp
+.It Pa ~/.ssh/identity.pub
+Contient la clef publique RSA d'authentification pour la version 1 du
+protocole.
+Le contenu de ce fichier doit être ajouté à
+.Pa ~/.ssh/authorized_keys
+sur toutes les machines où l'utilisateur souhaite s'authentifier avec
+RSA.
+Il n'est pas nécessaire de garder secret le contenu de ce fichier.
+.Pp
+.It Pa ~/.ssh/id_dsa
+.It Pa ~/.ssh/id_ecdsa
+.It Pa ~/.ssh/id_rsa
+Contiennent les identités d'authentification DSA, ECDSA ou RSA de
+l'utilisateur  pour la version 2 du protocole.
+Ces fichiers ne doivent être lisibles que par l'utilisateur.
+Il est possible de spécifier une phrase de passe lors de la génération
+de la clef\ ; cette phrase de passe est utilisée pour crypter la
+partie privée du fichier avec AES 128-bit.
+.Nm
+n'accède pas directement à ces fichiers mais ce sont les fichiers par
+défaut pour la clef privée.
+.Xr ssh 1
+lit ce fichier quand une tentative d'identification est réalisée.
+.Pp
+.It Pa ~/.ssh/id_dsa.pub
+.It Pa ~/.ssh/id_ecdsa.pub
+.It Pa ~/.ssh/id_rsa.pub
+Contiennent les clefs publiques DSA, ECDSA ou RSA pour
+l'authentification en version 2 du protocole.
+Le contenu de ces fichiers doit être ajouté à
+.Pa ~/.ssh/authorized_keys
+sur toutes les machines où l'utilisateur souhaite se connecter avec
+une authentification par clef publique.
+Il n'est pas nécessaire de garder secret le contenu de ces fichiers.
+.Pp
+.It Pa /etc/moduli
+Contient les groupes Diffie-Hellman utilisés pour DH-GEX.
+Le format du fichier est décrit dans
+.Xr moduli 5 .
+.El
+.Sh VOIR AUSSI
+.Xr ssh 1 ,
+.Xr ssh-add 1 ,
+.Xr ssh-agent 1 ,
+.Xr moduli 5 ,
+.Xr sshd 8
+.Rs
+.%R RFC 4716
+.%T "The Secure Shell (SSH) Public Key File Format"
+.%D 2006
+.Re
+.Sh AUTEURS
+OpenSSH est dérivé de la version originale et libre de ssh 1.2.12 de Tatu Ylonen.
+Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos,
+Theo de Raadt et Dug Song
+ont supprimé plusieurs bugs, ajouté des nouvelles fonctionnalités
+et ont créé OpenSSH.
+Markus Friedl a contribué au support des protocoles versions 1.5 et 2.0 de SSH.
